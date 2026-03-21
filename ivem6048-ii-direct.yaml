@@ -1,0 +1,1018 @@
+# First-pass ESPHome config for a single IVEM6048-II.
+#
+# This replaces an ESPHome Modbus TCP bridge with a direct Modbus RTU node on
+# the same ESP32. It reuses the IVEM register map already implemented in this
+# repository.
+#
+# Notes:
+# - Replace the Wi-Fi block with your own package include if you already use one.
+# - Confirm the inverter slave address before flashing.
+# - `max_cmd_retries` is set to 0 on purpose. Some IVEM writes can succeed even
+#   when the inverter does not acknowledge cleanly, so avoiding automatic write
+#   retries is safer.
+# - Validate each writable setting individually on the inverter before relying
+#   on it in automations.
+
+substitutions:
+  name: ivem6048ii
+  friendly_name: "IVEM6048-II"
+  modbus_address: "1"
+  update_interval: 10s
+  command_throttle: 100ms
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+api:
+ota:
+  platform: esphome
+
+packages:
+  wifi: !include common/wifi.yaml
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 9600
+  stop_bits: 1
+  parity: NONE
+  rx_buffer_size: 512
+
+modbus:
+  id: modbus_bus
+  send_wait_time: 200ms
+  # Uncomment if your RS485 transceiver needs explicit direction control.
+  # flow_control_pin: GPIO4
+
+modbus_controller:
+  - id: ivem
+    address: ${modbus_address}
+    modbus_id: modbus_bus
+    setup_priority: -10
+    update_interval: ${update_interval}
+    command_throttle: ${command_throttle}
+    max_cmd_retries: 0
+    offline_skip_updates: 0
+
+sensor:
+  # Core battery values.
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_battery_current
+    name: "${friendly_name} Battery Current"
+    register_type: holding
+    address: 4620
+    register_count: 6
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_battery_voltage
+    name: "${friendly_name} Battery Voltage"
+    register_type: holding
+    address: 4621
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_battery_soc
+    name: "${friendly_name} Battery SoC"
+    register_type: holding
+    address: 4624
+    value_type: U_WORD
+    device_class: battery
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery SoH"
+    register_type: holding
+    address: 4625
+    value_type: U_WORD
+    device_class: battery
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  # Additional battery and BMS limits.
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Line Voltage"
+    register_type: holding
+    address: 4608
+    register_count: 6
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Charge Discharge Limit Voltage"
+    register_type: holding
+    address: 4609
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Max Charge Current Limit"
+    register_type: holding
+    address: 4610
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Max Discharge Current Limit"
+    register_type: holding
+    address: 4611
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery System Fault Code"
+    register_type: holding
+    address: 4612
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_battery_system_status_state
+    name: "${friendly_name} Battery System Status State"
+    register_type: holding
+    address: 4613
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  # PV.
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} PV1 Voltage"
+    register_type: holding
+    address: 4390
+    register_count: 5
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} PV1 Current"
+    register_type: holding
+    address: 4393
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+      - lambda: |-
+          return x < 0.0f ? 0.0f : x;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_pv1_power
+    name: "${friendly_name} PV1 Power"
+    register_type: holding
+    address: 4394
+    value_type: S_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    filters:
+      - lambda: |-
+          return x < 0.0f ? 0.0f : x;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} PV2 Voltage"
+    register_type: holding
+    address: 4441
+    register_count: 3
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} PV2 Current"
+    register_type: holding
+    address: 4442
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+      - lambda: |-
+          return x < 0.0f ? 0.0f : x;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_pv2_power
+    name: "${friendly_name} PV2 Power"
+    register_type: holding
+    address: 4443
+    value_type: S_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    filters:
+      - lambda: |-
+          return x < 0.0f ? 0.0f : x;
+
+  - platform: template
+    name: "${friendly_name} PV Power"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    lambda: |-
+      if (isnan(id(ivem_pv1_power).state) || isnan(id(ivem_pv2_power).state)) {
+        return NAN;
+      }
+      return id(ivem_pv1_power).state + id(ivem_pv2_power).state;
+
+  # Inverter and AC values.
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Inverter Fault Code"
+    register_type: holding
+    address: 4355
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_battery_power
+    name: "${friendly_name} Battery Power"
+    register_type: holding
+    address: 4362
+    register_count: 8
+    value_type: S_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Inverter Voltage"
+    register_type: holding
+    address: 4364
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Inverter Current"
+    register_type: holding
+    address: 4365
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Inverter Frequency"
+    register_type: holding
+    address: 4366
+    value_type: U_WORD
+    device_class: frequency
+    state_class: measurement
+    unit_of_measurement: Hz
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_inverter_power
+    name: "${friendly_name} Inverter Power"
+    register_type: holding
+    address: 4367
+    value_type: S_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Inverter Apparent Power"
+    register_type: holding
+    address: 4368
+    value_type: U_WORD
+    state_class: measurement
+    unit_of_measurement: VA
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Output Voltage"
+    register_type: holding
+    address: 4369
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: template
+    name: "${friendly_name} Battery Power Charge"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    lambda: |-
+      if (isnan(id(ivem_battery_power).state)) {
+        return NAN;
+      }
+      return id(ivem_battery_power).state > 0.0f ? id(ivem_battery_power).state : 0.0f;
+
+  - platform: template
+    name: "${friendly_name} Battery Power Discharge"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    lambda: |-
+      if (isnan(id(ivem_battery_power).state)) {
+        return NAN;
+      }
+      return id(ivem_battery_power).state < 0.0f ? -id(ivem_battery_power).state : 0.0f;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Input Voltage"
+    register_type: holding
+    address: 4375
+    register_count: 3
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Input Frequency"
+    register_type: holding
+    address: 4377
+    value_type: U_WORD
+    device_class: frequency
+    state_class: measurement
+    unit_of_measurement: Hz
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Output Apparent Power"
+    register_type: holding
+    address: 4383
+    value_type: U_WORD
+    state_class: measurement
+    unit_of_measurement: VA
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Load Power"
+    register_type: holding
+    address: 4382
+    register_count: 7
+    value_type: S_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Load Percentage"
+    register_type: holding
+    address: 4384
+    value_type: U_WORD
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Transformer Temperature"
+    register_type: holding
+    address: 4385
+    value_type: S_WORD
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Inverter Temperature"
+    register_type: holding
+    address: 4386
+    value_type: S_WORD
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Temperature"
+    register_type: holding
+    address: 4387
+    value_type: S_WORD
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Bus Voltage"
+    register_type: holding
+    address: 4388
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} SCC Temperature"
+    register_type: holding
+    address: 4395
+    register_count: 14
+    value_type: S_WORD
+    device_class: temperature
+    state_class: measurement
+    unit_of_measurement: "°C"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} SCC Charge Mode"
+    register_type: holding
+    address: 4396
+    value_type: U_WORD
+    accuracy_decimals: 0
+
+  # BMS.
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Flags"
+    register_type: holding
+    address: 4400
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Connect Count"
+    register_type: holding
+    address: 4401
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS SoC"
+    register_type: holding
+    address: 4402
+    value_type: U_WORD
+    device_class: battery
+    state_class: measurement
+    unit_of_measurement: "%"
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS CV Voltage"
+    register_type: holding
+    address: 4403
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Float Voltage"
+    register_type: holding
+    address: 4404
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Cutoff Voltage"
+    register_type: holding
+    address: 4405
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Max Charge Current"
+    register_type: holding
+    address: 4406
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Max Discharge Current"
+    register_type: holding
+    address: 4407
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Fault Code"
+    register_type: holding
+    address: 4408
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  # Generator and smart load.
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Generator Voltage"
+    register_type: holding
+    address: 4453
+    register_count: 9
+    value_type: S_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Generator Current"
+    register_type: holding
+    address: 4454
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Generator Frequency"
+    register_type: holding
+    address: 4455
+    value_type: S_WORD
+    device_class: frequency
+    state_class: measurement
+    unit_of_measurement: Hz
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Generator Power"
+    register_type: holding
+    address: 4456
+    value_type: U_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Smart Load Voltage"
+    register_type: holding
+    address: 4457
+    value_type: U_WORD
+    device_class: voltage
+    state_class: measurement
+    unit_of_measurement: V
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Smart Load Current"
+    register_type: holding
+    address: 4458
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Smart Load Frequency"
+    register_type: holding
+    address: 4459
+    value_type: U_WORD
+    device_class: frequency
+    state_class: measurement
+    unit_of_measurement: Hz
+    accuracy_decimals: 2
+    filters:
+      - multiply: 0.01
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Smart Load Power"
+    register_type: holding
+    address: 4460
+    value_type: U_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    id: ivem_smart_port_status_raw
+    name: "${friendly_name} Smart Port Status Raw"
+    register_type: holding
+    address: 4461
+    value_type: U_WORD
+    accuracy_decimals: 0
+    entity_category: diagnostic
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} EQ Stage"
+    register_type: holding
+    address: 4500
+    value_type: U_WORD
+    accuracy_decimals: 0
+
+binary_sensor:
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Communication Connected"
+    register_type: holding
+    address: 4400
+    bitmask: 0x01
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Version Mismatch"
+    register_type: holding
+    address: 4400
+    bitmask: 0x02
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Forced Charge"
+    register_type: holding
+    address: 4400
+    bitmask: 0x04
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Charge Stopped"
+    register_type: holding
+    address: 4400
+    bitmask: 0x08
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} BMS Discharge Stopped"
+    register_type: holding
+    address: 4400
+    bitmask: 0x10
+
+text_sensor:
+  - platform: template
+    name: "${friendly_name} Smart Port Status"
+    lambda: |-
+      if (isnan(id(ivem_smart_port_status_raw).state)) {
+        return {"Unknown"};
+      }
+      switch (static_cast<int>(id(ivem_smart_port_status_raw).state)) {
+        case 0:
+          return {"Generator Input"};
+        case 1:
+          return {"Smart Load Output"};
+        default:
+          return {"Unknown"};
+      }
+
+number:
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Cut-Off Voltage"
+    address: 8479
+    register_count: 5
+    value_type: U_WORD
+    mode: box
+    device_class: voltage
+    entity_category: config
+    min_value: 21.0
+    max_value: 60.1
+    step: 0.1
+    unit_of_measurement: V
+    lambda: return x * 0.1f;
+    write_lambda: return x * 10.0f;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery C.V. Charging Voltage"
+    address: 8482
+    value_type: U_WORD
+    mode: box
+    device_class: voltage
+    entity_category: config
+    min_value: 21.0
+    max_value: 60.1
+    step: 0.1
+    unit_of_measurement: V
+    lambda: return x * 0.1f;
+    write_lambda: return x * 10.0f;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Floating Charging Voltage"
+    address: 8483
+    value_type: U_WORD
+    mode: box
+    device_class: voltage
+    entity_category: config
+    min_value: 21.0
+    max_value: 60.1
+    step: 0.1
+    unit_of_measurement: V
+    lambda: return x * 0.1f;
+    write_lambda: return x * 10.0f;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Max Charge Current"
+    address: 8494
+    register_count: 3
+    value_type: U_WORD
+    mode: box
+    device_class: current
+    entity_category: config
+    min_value: 10
+    max_value: 100
+    step: 1
+    unit_of_measurement: A
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Max AC Charge Current"
+    address: 8496
+    value_type: U_WORD
+    mode: box
+    device_class: current
+    entity_category: config
+    min_value: 10
+    max_value: 100
+    step: 1
+    unit_of_measurement: A
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Back To Charge Voltage"
+    address: 8534
+    register_count: 4
+    value_type: U_WORD
+    mode: box
+    device_class: voltage
+    entity_category: config
+    min_value: 21.0
+    max_value: 60.1
+    step: 0.1
+    unit_of_measurement: V
+    lambda: return x * 0.1f;
+    write_lambda: return x * 10.0f;
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Back To Discharge Voltage"
+    address: 8537
+    value_type: U_WORD
+    mode: box
+    device_class: voltage
+    entity_category: config
+    min_value: 21.0
+    max_value: 60.1
+    step: 0.1
+    unit_of_measurement: V
+    lambda: return x * 0.1f;
+    write_lambda: return x * 10.0f;
+
+select:
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Output Frequency"
+    address: 8489
+    register_count: 15
+    entity_category: config
+    optionsmap:
+      "50Hz": 0
+      "60Hz": 1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Output Source Priority"
+    address: 8490
+    entity_category: config
+    optionsmap:
+      "Utility First": 0
+      "Solar First": 1
+      "Solar Battery Utility": 2
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Application Mode"
+    address: 8491
+    entity_category: config
+    optionsmap:
+      "APL": 0
+      "UPS": 1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Charging Source Priority"
+    address: 8492
+    entity_category: config
+    optionsmap:
+      "Solar First": 1
+      "Solar and Utility First": 2
+      "Solar Only": 3
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Type"
+    address: 8493
+    entity_category: config
+    optionsmap:
+      "AGM": 0
+      "Flood": 1
+      "User Defined": 2
+      "LiFePO4": 3
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Buzzer"
+    address: 8497
+    entity_category: config
+    optionsmap:
+      "Disable": 0
+      "Enable": 1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Overload Restart"
+    address: 8499
+    entity_category: config
+    optionsmap:
+      "Disable": 0
+      "Enable": 1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Over Temperature Restart"
+    address: 8500
+    entity_category: config
+    optionsmap:
+      "Disable": 0
+      "Enable": 1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} LCD Backlight"
+    address: 8501
+    entity_category: config
+    optionsmap:
+      "Disable": 0
+      "Enable": 1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Overload To Bypass"
+    address: 8503
+    entity_category: config
+    optionsmap:
+      "Disable": 0
+      "Enable": 1

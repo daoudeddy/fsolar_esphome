@@ -1,0 +1,318 @@
+# ESPHome config for a single IVEM6048-II using the external component from
+# GitHub for both telemetry and documented settings writes.
+#
+# Notes:
+# - This pulls the component from https://github.com/daoudeddy/fsolar_esphome.
+# - This mirrors the current write surface of the raw Modbus Controller example,
+#   but with the IVEM register map moved into reusable local platforms.
+# - Validate each writable setting individually on the inverter before relying
+#   on it in automations.
+
+substitutions:
+  name: ivem6048ii
+  friendly_name: "IVEM6048-II"
+  modbus_address: "1"
+  update_interval: 10s
+  command_throttle: 100ms
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+external_components:
+  - source:
+      type: git
+      url: https://github.com/daoudeddy/fsolar_esphome
+      path: components
+    components: [fsolar_ivem]
+
+logger:
+api:
+ota:
+  platform: esphome
+
+packages:
+  wifi: !include common/wifi.yaml
+
+uart:
+  id: uart_bus
+  tx_pin: GPIO17
+  rx_pin: GPIO16
+  baud_rate: 9600
+  stop_bits: 1
+  parity: NONE
+  rx_buffer_size: 512
+
+modbus:
+  id: modbus_bus
+  send_wait_time: 200ms
+  # Uncomment if your RS485 transceiver needs explicit direction control.
+  # flow_control_pin: GPIO4
+
+modbus_controller:
+  - id: ivem
+    address: ${modbus_address}
+    modbus_id: modbus_bus
+    setup_priority: -10
+    update_interval: ${update_interval}
+    command_throttle: ${command_throttle}
+    max_cmd_retries: 0
+    offline_skip_updates: 0
+
+fsolar_ivem:
+  id: ivem_probe
+  modbus_controller_id: ivem
+  probe_address:
+    name: "${friendly_name} Probe Address"
+    mode: box
+  probe_count:
+    name: "${friendly_name} Probe Count"
+    mode: box
+  probe_register_type:
+    name: "${friendly_name} Probe Register Type"
+  probe_read:
+    name: "${friendly_name} Probe Read"
+  probe_status:
+    name: "${friendly_name} Probe Status"
+  probe_result:
+    name: "${friendly_name} Probe Result"
+
+sensor:
+  - platform: fsolar_ivem
+    modbus_controller_id: ivem
+    battery_current:
+      id: ivem_battery_current
+      name: "${friendly_name} Battery Current"
+    battery_voltage:
+      id: ivem_battery_voltage
+      name: "${friendly_name} Battery Voltage"
+    battery_soc:
+      id: ivem_battery_soc
+      name: "${friendly_name} Battery SoC"
+    battery_soh:
+      name: "${friendly_name} Battery SoH"
+    battery_line_voltage:
+      name: "${friendly_name} Battery Line Voltage"
+    battery_charge_discharge_limit_voltage:
+      name: "${friendly_name} Battery Charge Discharge Limit Voltage"
+    battery_max_charge_current_limit:
+      name: "${friendly_name} Battery Max Charge Current Limit"
+    battery_max_discharge_current_limit:
+      name: "${friendly_name} Battery Max Discharge Current Limit"
+    battery_system_fault_code:
+      name: "${friendly_name} Battery System Fault Code"
+    battery_system_status_state:
+      name: "${friendly_name} Battery System Status State"
+    pv1_voltage:
+      name: "${friendly_name} PV1 Voltage"
+    pv1_current:
+      name: "${friendly_name} PV1 Current"
+    pv1_power:
+      id: ivem_pv1_power
+      name: "${friendly_name} PV1 Power"
+    pv2_voltage:
+      name: "${friendly_name} PV2 Voltage"
+    pv2_current:
+      name: "${friendly_name} PV2 Current"
+    pv2_power:
+      id: ivem_pv2_power
+      name: "${friendly_name} PV2 Power"
+    inverter_fault_code:
+      name: "${friendly_name} Inverter Fault Code"
+    battery_power:
+      id: ivem_battery_power
+      name: "${friendly_name} Battery Power"
+    inverter_voltage:
+      name: "${friendly_name} Inverter Voltage"
+    inverter_current:
+      name: "${friendly_name} Inverter Current"
+    inverter_frequency:
+      name: "${friendly_name} Inverter Frequency"
+    inverter_power:
+      id: ivem_inverter_power
+      name: "${friendly_name} Inverter Power"
+    inverter_apparent_power:
+      name: "${friendly_name} Inverter Apparent Power"
+    ac_output_voltage:
+      name: "${friendly_name} AC Output Voltage"
+    ac_input_voltage:
+      name: "${friendly_name} AC Input Voltage"
+    ac_input_frequency:
+      name: "${friendly_name} AC Input Frequency"
+    ac_input_current:
+      name: "${friendly_name} AC Input Current"
+    ac_input_power:
+      name: "${friendly_name} AC Input Power"
+    ac_output_power:
+      name: "${friendly_name} AC Output Power"
+    ac_output_apparent_power:
+      name: "${friendly_name} AC Output Apparent Power"
+    load_power:
+      name: "${friendly_name} Load Power"
+    load_percentage:
+      name: "${friendly_name} Load Percentage"
+    transformer_temperature:
+      name: "${friendly_name} Transformer Temperature"
+    inverter_temperature:
+      name: "${friendly_name} Inverter Temperature"
+    battery_temperature:
+      name: "${friendly_name} Battery Temperature"
+    bus_voltage:
+      name: "${friendly_name} Bus Voltage"
+    scc_temperature:
+      name: "${friendly_name} SCC Temperature"
+    scc_charge_mode:
+      name: "${friendly_name} SCC Charge Mode"
+    bms_flags:
+      name: "${friendly_name} BMS Flags"
+    bms_connect_count:
+      name: "${friendly_name} BMS Connect Count"
+    bms_soc:
+      name: "${friendly_name} BMS SoC"
+    bms_cv_voltage:
+      name: "${friendly_name} BMS CV Voltage"
+    bms_float_voltage:
+      name: "${friendly_name} BMS Float Voltage"
+    bms_cutoff_voltage:
+      name: "${friendly_name} BMS Cutoff Voltage"
+    bms_max_charge_current:
+      name: "${friendly_name} BMS Max Charge Current"
+    bms_max_discharge_current:
+      name: "${friendly_name} BMS Max Discharge Current"
+    bms_fault_code:
+      name: "${friendly_name} BMS Fault Code"
+    generator_voltage:
+      name: "${friendly_name} Generator Voltage"
+    generator_current:
+      name: "${friendly_name} Generator Current"
+    generator_frequency:
+      name: "${friendly_name} Generator Frequency"
+    generator_power:
+      name: "${friendly_name} Generator Power"
+    smart_load_voltage:
+      name: "${friendly_name} Smart Load Voltage"
+    smart_load_current:
+      name: "${friendly_name} Smart Load Current"
+    smart_load_frequency:
+      name: "${friendly_name} Smart Load Frequency"
+    smart_load_power:
+      name: "${friendly_name} Smart Load Power"
+    smart_port_status_raw:
+      id: ivem_smart_port_status_raw
+      name: "${friendly_name} Smart Port Status Raw"
+    eq_stage:
+      name: "${friendly_name} EQ Stage"
+    battery_power_summary:
+      name: "${friendly_name} Battery Power Summary"
+    pv_power_summary:
+      name: "${friendly_name} PV Power Summary"
+
+  - platform: template
+    name: "${friendly_name} PV Power"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    lambda: |-
+      if (isnan(id(ivem_pv1_power).state) || isnan(id(ivem_pv2_power).state)) {
+        return NAN;
+      }
+      return id(ivem_pv1_power).state + id(ivem_pv2_power).state;
+
+  - platform: template
+    name: "${friendly_name} Battery Power Charge"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    lambda: |-
+      if (isnan(id(ivem_battery_power).state)) {
+        return NAN;
+      }
+      return id(ivem_battery_power).state > 0.0f ? id(ivem_battery_power).state : 0.0f;
+
+  - platform: template
+    name: "${friendly_name} Battery Power Discharge"
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+    lambda: |-
+      if (isnan(id(ivem_battery_power).state)) {
+        return NAN;
+      }
+      return id(ivem_battery_power).state < 0.0f ? -id(ivem_battery_power).state : 0.0f;
+
+binary_sensor:
+  - platform: fsolar_ivem
+    modbus_controller_id: ivem
+    bms_communication_connected:
+      name: "${friendly_name} BMS Communication Connected"
+    bms_version_mismatch:
+      name: "${friendly_name} BMS Version Mismatch"
+    bms_forced_charge:
+      name: "${friendly_name} BMS Forced Charge"
+    bms_charge_stopped:
+      name: "${friendly_name} BMS Charge Stopped"
+    bms_discharge_stopped:
+      name: "${friendly_name} BMS Discharge Stopped"
+
+text_sensor:
+  - platform: fsolar_ivem
+    modbus_controller_id: ivem
+    smart_port_status:
+      name: "${friendly_name} Smart Port Status"
+
+number:
+  - platform: fsolar_ivem
+    modbus_controller_id: ivem
+    battery_cut_off_voltage:
+      name: "${friendly_name} Battery Cut-Off Voltage"
+      mode: box
+    battery_cv_charging_voltage:
+      name: "${friendly_name} Battery C.V. Charging Voltage"
+      mode: box
+    battery_floating_charging_voltage:
+      name: "${friendly_name} Battery Floating Charging Voltage"
+      mode: box
+    battery_max_charge_current:
+      name: "${friendly_name} Battery Max Charge Current"
+      mode: box
+    battery_max_ac_charge_current:
+      name: "${friendly_name} Battery Max AC Charge Current"
+      mode: box
+    battery_back_to_charge_voltage:
+      name: "${friendly_name} Battery Back To Charge Voltage"
+      mode: box
+    battery_back_to_discharge_voltage:
+      name: "${friendly_name} Battery Back To Discharge Voltage"
+      mode: box
+
+select:
+  - platform: fsolar_ivem
+    modbus_controller_id: ivem
+    ac_output_frequency:
+      name: "${friendly_name} AC Output Frequency"
+    output_source_priority:
+      name: "${friendly_name} Output Source Priority"
+    application_mode:
+      name: "${friendly_name} Application Mode"
+    charging_source_priority:
+      name: "${friendly_name} Charging Source Priority"
+    battery_type:
+      name: "${friendly_name} Battery Type"
+    buzzer:
+      name: "${friendly_name} Buzzer"
+    overload_restart:
+      name: "${friendly_name} Overload Restart"
+    over_temperature_restart:
+      name: "${friendly_name} Over Temperature Restart"
+    lcd_backlight:
+      name: "${friendly_name} LCD Backlight"
+    overload_to_bypass:
+      name: "${friendly_name} Overload To Bypass"
