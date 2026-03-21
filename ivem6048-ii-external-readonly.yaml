@@ -30,7 +30,9 @@ external_components:
   - source:
       type: git
       url: https://github.com/daoudeddy/fsolar_esphome
+      ref: main
       path: components
+    refresh: 0s
     components: [fsolar_ivem]
 
 logger:
