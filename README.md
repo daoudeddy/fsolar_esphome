@@ -8,6 +8,48 @@ The repository includes these example configurations:
 - `ivem6048-ii-external.yaml`: Git-based external component example for telemetry plus documented writable settings.
 - `ivem6048-ii-direct.yaml`: Raw Modbus Controller example without the custom component.
 
+## Hardware Connection
+
+The following wiring matches the setup used with a MAX3232 level shifter and the UART pins used in the example YAML files:
+
+### Pin Mapping
+
+| Inverter RJ45 | Signal | MAX3232 | ESP32 |
+| --- | --- | --- | --- |
+| Pin 1 | RS232 data from inverter | `R1IN` | |
+| Pin 2 | RS232 data to inverter | `T1OUT` | |
+| Pin 3 | Supply from inverter, about `10V` | 5V regulator input | ESP32 `5V` / `VIN` from regulator output |
+| Pin 8 | Ground | `GND` | `GND` |
+| | TTL receive from MAX3232 | `R1OUT` | `RX2` / `GPIO16` |
+| | TTL transmit to MAX3232 | `T1IN` | `TX2` / `GPIO17` |
+| | MAX3232 power | `VCC` | `3V3` |
+| | Common ground | `GND` | `GND` |
+
+### Wiring Schema
+
+```text
+IVEM RJ45                         MAX3232                         ESP32
+---------                         -------                         -----
+Pin 1  RS232 OUT  ------------->  R1IN
+                                   R1OUT  --------------------->  GPIO16 / RX2
+
+GPIO17 / TX2  ----------------->  T1IN
+                                   T1OUT  --------------------->  Pin 2  RS232 IN
+
+Pin 3  ~10V  ------------------>  5V regulator IN
+5V regulator OUT  --------------------------------------------->  5V / VIN
+
+Pin 8  GND  -------------------->  GND  ------------------------>  GND
+ESP32 3V3  ----------------------------------------------------->  VCC
+```
+
+### Notes
+
+- This assumes an ESP32 dev board with an onboard `5V` to `3.3V` regulator.
+- The MAX3232 should run from the ESP32 `3V3` rail.
+- The YAML examples in this repository use `GPIO17` for `TX` and `GPIO16` for `RX`, matching the wiring above.
+- Confirm the inverter RJ45 pinout on your hardware before powering the board.
+
 ## Notes
 
 - All addresses below are Modbus holding register addresses as currently used by the component.
