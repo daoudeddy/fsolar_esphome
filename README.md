@@ -1,6 +1,12 @@
 # IVEM6048-II Register Map
 
-This document describes the IVEM6048-II addresses currently implemented by the local ESPHome external component in this directory.
+This document describes the IVEM6048-II addresses currently implemented by the ESPHome external component in this repository.
+
+The repository includes these example configurations:
+
+- `ivem6048-ii-external-readonly.yaml`: Git-based external component example for read-only telemetry.
+- `ivem6048-ii-external.yaml`: Git-based external component example for telemetry plus documented writable settings.
+- `ivem6048-ii-direct.yaml`: Raw Modbus Controller example without the custom component.
 
 ## Notes
 
@@ -9,7 +15,7 @@ This document describes the IVEM6048-II addresses currently implemented by the l
 - `Address (hex)` is the same address in hexadecimal for easier cross-reference with inverter documentation and Modbus tools.
 - `Count` is the register count configured on the entity today. For read entities, larger counts are used to let `modbus_controller` coalesce contiguous telemetry into fewer read ranges.
 - Some addresses appear more than once because the same raw register block is exposed in multiple ways, for example a raw numeric sensor plus decoded text or bit flags.
-- The external example `examples/esphome/ivem6048-ii-external.yaml` also includes an ESPHome-side register probe helper for testing unknown holding/input registers from Home Assistant through the ESPHome integration.
+- The `ivem6048-ii-external.yaml` example also includes an ESPHome-side register probe helper for testing unknown holding/input registers from Home Assistant through the ESPHome integration.
 - Access values:
   - `R`: read only
   - `R/W`: read and write
