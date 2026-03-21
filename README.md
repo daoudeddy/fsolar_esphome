@@ -1,5 +1,7 @@
 # IVEM6048-II Register Map
 
+> Security note: this project intentionally focuses on direct local Modbus access rather than the vendor official app/API. Based on reverse-engineering and validation work during development, local integration is the preferred approach for security, privacy, and long-term control.
+
 This document describes the IVEM6048-II addresses currently implemented by the ESPHome external component in this repository.
 
 The repository includes these example configurations:
