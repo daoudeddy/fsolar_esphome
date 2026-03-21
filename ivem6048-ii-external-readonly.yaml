@@ -130,6 +130,12 @@ sensor:
       name: "${friendly_name} AC Input Frequency"
     ac_input_current:
       name: "${friendly_name} AC Input Current"
+    ac_output_current:
+      name: "${friendly_name} AC Output Current"
+    battery_current_summary:
+      name: "${friendly_name} Battery Current Signed"
+    pv_current_summary:
+      name: "${friendly_name} PV Current"
     ac_input_power:
       name: "${friendly_name} AC Input Power"
     ac_output_power:

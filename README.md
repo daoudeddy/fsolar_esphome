@@ -30,7 +30,10 @@ This document describes the IVEM6048-II addresses currently implemented by the l
 | 4369 | `0x1111` | `ac_output_voltage` | AC Output Voltage | `U_WORD` | 1 | R | Scale `x * 0.1` |
 | 4375 | `0x1117` | `ac_input_voltage` | AC Input Voltage | `U_WORD` | 3 | R | Grouped read block, scale `x * 0.1` |
 | 4377 | `0x1119` | `ac_input_frequency` | AC Input Frequency | `U_WORD` | 1 | R | Scale `x * 0.01` |
-| 4501 | `0x1195` | `ac_input_current` | AC Input Current | `U_WORD` | 1 | R | Scale `x * 0.1` |
+| 4502 | `0x1196` | `ac_input_current` | AC Input Current | `U_WORD` | 4 | R | Grouped read block, scale `x * 0.1` |
+| 4503 | `0x1197` | `ac_output_current` | AC Output Current | `U_WORD` | 1 | R | Scale `x * 0.1` |
+| 4504 | `0x1198` | `battery_current_summary` | Battery Current Signed | `S_WORD` | 1 | R | Scale `x * 0.1` |
+| 4505 | `0x1199` | `pv_current_summary` | PV Current | `U_WORD` | 1 | R | Scale `x * 0.1` |
 | 4382 | `0x111E` | `load_power` | Load Power | `S_WORD` | 7 | R | Grouped read block |
 | 4383 | `0x111F` | `ac_output_apparent_power` | AC Output Apparent Power | `U_WORD` | 1 | R | |
 | 4509 | `0x119D` | `ac_input_power` | AC Input Power | `U_WORD` | 4 | R | Grouped read block |
@@ -124,21 +127,6 @@ All of these read from holding register `4400`.
 | 8500 | `0x2134` | `over_temperature_restart` | Over Temperature Restart | `U_WORD` | 1 | R enum | `Disable=0`, `Enable=1` |
 | 8501 | `0x2135` | `lcd_backlight` | LCD Backlight | `U_WORD` | 1 | R enum | `Disable=0`, `Enable=1` |
 | 8503 | `0x2137` | `overload_to_bypass` | Overload To Bypass | `U_WORD` | 1 | R enum | `Disable=0`, `Enable=1` |
-
-## Reported Additional Summary Registers
-
-The following addresses were reported separately and look like an additional summary/current-power block near `EQ Stage`.
-The non-conflicting entries from that block are now implemented in the external component.
-The remaining unresolved part is the duplicated `0x1196` current mapping.
-
-| Address (dec) | Address (hex) | Reported Meaning | Scale / Notes | Status |
-| ---: | ---: | --- | --- | --- |
-| 4502 | `0x1196` | AC Output Current | `x * 0.1` | Reported, unverified |
-| 4502 | `0x1196` | Battery Current Signed | `signed`, `x * 0.1` | Conflicts with row above |
-| 4502 | `0x1196` | PV Current | `x * 0.1` | Conflicts with row above |
-| 4502 | `0x1196` | AC Output Current / Battery Current Signed / PV Current | Reported conflict | Needs probe confirmation |
-
-Once the duplicated `0x1196` current mappings are confirmed against probe results or vendor documentation, these can be promoted into implemented sensors.
 
 ## Coverage Summary
 

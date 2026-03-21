@@ -34,11 +34,13 @@ CONF_AC_INPUT_FREQUENCY = "ac_input_frequency"
 CONF_AC_INPUT_CURRENT = "ac_input_current"
 CONF_AC_INPUT_POWER = "ac_input_power"
 CONF_AC_INPUT_VOLTAGE = "ac_input_voltage"
+CONF_AC_OUTPUT_CURRENT = "ac_output_current"
 CONF_AC_OUTPUT_APPARENT_POWER = "ac_output_apparent_power"
 CONF_AC_OUTPUT_POWER = "ac_output_power"
 CONF_AC_OUTPUT_VOLTAGE = "ac_output_voltage"
 CONF_BATTERY_CHARGE_DISCHARGE_LIMIT_VOLTAGE = "battery_charge_discharge_limit_voltage"
 CONF_BATTERY_CURRENT = "battery_current"
+CONF_BATTERY_CURRENT_SUMMARY = "battery_current_summary"
 CONF_BATTERY_CUTOFF_VOLTAGE = "bms_cutoff_voltage"
 CONF_BATTERY_LINE_VOLTAGE = "battery_line_voltage"
 CONF_BATTERY_MAX_CHARGE_CURRENT = "bms_max_charge_current"
@@ -79,6 +81,7 @@ CONF_PV1_POWER = "pv1_power"
 CONF_PV1_VOLTAGE = "pv1_voltage"
 CONF_PV2_CURRENT = "pv2_current"
 CONF_PV2_POWER = "pv2_power"
+CONF_PV_CURRENT_SUMMARY = "pv_current_summary"
 CONF_PV_POWER_SUMMARY = "pv_power_summary"
 CONF_PV2_VOLTAGE = "pv2_voltage"
 CONF_SCC_CHARGE_MODE = "scc_charge_mode"
@@ -357,7 +360,34 @@ SENSORS: dict[str, SensorSpec] = {
         lambda_expr=_scale_lambda(0.01),
     ),
     CONF_AC_INPUT_CURRENT: SensorSpec(
-        address=4501,
+        address=4502,
+        value_type="U_WORD",
+        register_count=4,
+        accuracy_decimals=1,
+        unit_of_measurement="A",
+        device_class=DEVICE_CLASS_CURRENT,
+        lambda_expr=_scale_lambda(0.1),
+    ),
+    CONF_AC_OUTPUT_CURRENT: SensorSpec(
+        address=4503,
+        value_type="U_WORD",
+        register_count=1,
+        accuracy_decimals=1,
+        unit_of_measurement="A",
+        device_class=DEVICE_CLASS_CURRENT,
+        lambda_expr=_scale_lambda(0.1),
+    ),
+    CONF_BATTERY_CURRENT_SUMMARY: SensorSpec(
+        address=4504,
+        value_type="S_WORD",
+        register_count=1,
+        accuracy_decimals=1,
+        unit_of_measurement="A",
+        device_class=DEVICE_CLASS_CURRENT,
+        lambda_expr=_scale_lambda(0.1),
+    ),
+    CONF_PV_CURRENT_SUMMARY: SensorSpec(
+        address=4505,
         value_type="U_WORD",
         register_count=1,
         accuracy_decimals=1,
