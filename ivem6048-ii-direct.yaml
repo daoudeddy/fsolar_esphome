@@ -444,6 +444,59 @@ sensor:
 
   - platform: modbus_controller
     modbus_controller_id: ivem
+    name: "${friendly_name} AC Input Current"
+    register_type: holding
+    address: 4502
+    register_count: 4
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Output Current"
+    register_type: holding
+    address: 4503
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Current Signed"
+    register_type: holding
+    address: 4504
+    value_type: S_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} PV Current"
+    register_type: holding
+    address: 4505
+    value_type: U_WORD
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: A
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
     name: "${friendly_name} AC Output Apparent Power"
     register_type: holding
     address: 4383
@@ -762,6 +815,51 @@ sensor:
     register_type: holding
     address: 4500
     value_type: U_WORD
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Input Power"
+    register_type: holding
+    address: 4509
+    register_count: 4
+    value_type: U_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} AC Output Power"
+    register_type: holding
+    address: 4510
+    value_type: U_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Power Summary"
+    register_type: holding
+    address: 4511
+    value_type: S_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
+    accuracy_decimals: 0
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} PV Power Summary"
+    register_type: holding
+    address: 4512
+    value_type: U_WORD
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: W
     accuracy_decimals: 0
 
 binary_sensor:
