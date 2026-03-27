@@ -180,12 +180,16 @@ NUMBERS: dict[str, NumberSpec] = {
 
 
 def _number_schema(spec: NumberSpec) -> cv.Schema:
-    return number.number_schema(
-        FsolarIvemNumber,
-        device_class=spec.device_class,
-        entity_category=spec.entity_category,
-        unit_of_measurement=spec.unit_of_measurement,
-    )
+    schema_kwargs: dict[str, str] = {}
+
+    if spec.device_class is not None:
+        schema_kwargs["device_class"] = spec.device_class
+    if spec.entity_category is not None:
+        schema_kwargs["entity_category"] = spec.entity_category
+    if spec.unit_of_measurement is not None:
+        schema_kwargs["unit_of_measurement"] = spec.unit_of_measurement
+
+    return number.number_schema(FsolarIvemNumber, **schema_kwargs)
 
 
 CONFIG_SCHEMA = cv.Schema(
