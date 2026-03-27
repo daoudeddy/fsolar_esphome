@@ -26,7 +26,10 @@ DEPENDENCIES = ["modbus_controller"]
 CODEOWNERS = []
 
 CONF_BATTERY_BACK_TO_CHARGE_VOLTAGE = "battery_back_to_charge_voltage"
+CONF_BATTERY_BACK_TO_BATTERY_PERCENTAGE = "battery_back_to_battery_percentage"
 CONF_BATTERY_BACK_TO_DISCHARGE_VOLTAGE = "battery_back_to_discharge_voltage"
+CONF_BATTERY_BACK_TO_UTILITY_PERCENTAGE = "battery_back_to_utility_percentage"
+CONF_BATTERY_CUTOFF_PERCENTAGE = "battery_cut_off_percentage"
 CONF_BATTERY_CUTOFF_VOLTAGE = "battery_cut_off_voltage"
 CONF_BATTERY_CV_CHARGING_VOLTAGE = "battery_cv_charging_voltage"
 CONF_BATTERY_FLOATING_CHARGING_VOLTAGE = "battery_floating_charging_voltage"
@@ -77,6 +80,33 @@ NUMBERS: dict[str, NumberSpec] = {
         device_class=DEVICE_CLASS_VOLTAGE,
         read_lambda=_scale_lambda(0.1),
         write_lambda=_scale_lambda(10.0),
+    ),
+    CONF_BATTERY_CUTOFF_PERCENTAGE: NumberSpec(
+        address=8504,
+        value_type="U_WORD",
+        register_count=1,
+        min_value=0.0,
+        max_value=90.0,
+        step=5.0,
+        unit_of_measurement="%",
+    ),
+    CONF_BATTERY_BACK_TO_UTILITY_PERCENTAGE: NumberSpec(
+        address=8511,
+        value_type="U_WORD",
+        register_count=1,
+        min_value=5.0,
+        max_value=95.0,
+        step=5.0,
+        unit_of_measurement="%",
+    ),
+    CONF_BATTERY_BACK_TO_BATTERY_PERCENTAGE: NumberSpec(
+        address=8512,
+        value_type="U_WORD",
+        register_count=1,
+        min_value=10.0,
+        max_value=100.0,
+        step=5.0,
+        unit_of_measurement="%",
     ),
     CONF_BATTERY_CV_CHARGING_VOLTAGE: NumberSpec(
         address=8482,

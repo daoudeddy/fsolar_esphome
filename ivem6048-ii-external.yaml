@@ -282,6 +282,9 @@ number:
     battery_cut_off_voltage:
       name: "${friendly_name} Battery Cut-Off Voltage"
       mode: box
+    battery_cut_off_percentage:
+      name: "${friendly_name} Battery Cut-Off Percentage"
+      mode: box
     battery_cv_charging_voltage:
       name: "${friendly_name} Battery C.V. Charging Voltage"
       mode: box
@@ -293,6 +296,12 @@ number:
       mode: box
     battery_max_ac_charge_current:
       name: "${friendly_name} Battery Max AC Charge Current"
+      mode: box
+    battery_back_to_utility_percentage:
+      name: "${friendly_name} Battery Back To Utility Percentage"
+      mode: box
+    battery_back_to_battery_percentage:
+      name: "${friendly_name} Battery Back To Battery Percentage"
       mode: box
     battery_back_to_charge_voltage:
       name: "${friendly_name} Battery Back To Charge Voltage"

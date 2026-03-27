@@ -933,6 +933,18 @@ number:
 
   - platform: modbus_controller
     modbus_controller_id: ivem
+    name: "${friendly_name} Battery Cut-Off Percentage"
+    address: 8504
+    value_type: U_WORD
+    mode: box
+    entity_category: config
+    min_value: 0
+    max_value: 90
+    step: 5
+    unit_of_measurement: "%"
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
     name: "${friendly_name} Battery C.V. Charging Voltage"
     address: 8482
     value_type: U_WORD
@@ -987,6 +999,30 @@ number:
     max_value: 100
     step: 1
     unit_of_measurement: A
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Back To Utility Percentage"
+    address: 8511
+    value_type: U_WORD
+    mode: box
+    entity_category: config
+    min_value: 5
+    max_value: 95
+    step: 5
+    unit_of_measurement: "%"
+
+  - platform: modbus_controller
+    modbus_controller_id: ivem
+    name: "${friendly_name} Battery Back To Battery Percentage"
+    address: 8512
+    value_type: U_WORD
+    mode: box
+    entity_category: config
+    min_value: 10
+    max_value: 100
+    step: 5
+    unit_of_measurement: "%"
 
   - platform: modbus_controller
     modbus_controller_id: ivem
