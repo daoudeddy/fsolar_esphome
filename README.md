@@ -159,7 +159,7 @@ All of these read from holding register `4400`.
 | 8504 | `0x2138` | `battery_cut_off_percentage` | Battery Cut-Off Percentage | `U_WORD` | 1 | R/W | Integer percent, 0-90 in 5% steps |
 | 8482 | `0x2122` | `battery_cv_charging_voltage` | Battery C.V. Charging Voltage | `U_WORD` | 1 | R/W | Read `x * 0.1`, write `x * 10.0` |
 | 8483 | `0x2123` | `battery_floating_charging_voltage` | Battery Floating Charging Voltage | `U_WORD` | 1 | R/W | Read `x * 0.1`, write `x * 10.0` |
-| 8494 | `0x212E` | `battery_max_charge_current` | Battery Max Charge Current | `U_WORD` | 3 | R/W | Integer amps |
+| 8495 | `0x212F` | `battery_max_charge_current` | Battery Max Charge Current | `U_WORD` | 3 | R/W | Integer amps |
 | 8496 | `0x2130` | `battery_max_ac_charge_current` | Battery Max AC Charge Current | `U_WORD` | 1 | R/W | Integer amps |
 | 8511 | `0x213F` | `battery_back_to_utility_percentage` | Battery Back To Utility Percentage | `U_WORD` | 1 | R/W | Integer percent, 5-95 in 5% steps |
 | 8512 | `0x2140` | `battery_back_to_battery_percentage` | Battery Back To Battery Percentage | `U_WORD` | 1 | R/W | Integer percent, 10-100 in 5% steps |

@@ -133,7 +133,7 @@ NUMBERS: dict[str, NumberSpec] = {
         write_lambda=_scale_lambda(10.0),
     ),
     CONF_BATTERY_MAX_CHARGE_CURRENT: NumberSpec(
-        address=8494,
+        address=8495,
         value_type="U_WORD",
         register_count=3,
         min_value=10.0,
