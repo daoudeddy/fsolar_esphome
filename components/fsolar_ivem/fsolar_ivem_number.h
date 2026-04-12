@@ -97,7 +97,7 @@ class FsolarIvemNumber : public number::Number,
                "Updating register: connected Sensor=%s start address=0x%X register count=%d new value=%.02f (val=%.02f)",
                this->get_name().c_str(), this->start_address, this->register_count, value, write_value);
 
-      if (this->register_count == 1 && !this->use_write_multiple_) {
+      if (payload.size() == 1 && !this->use_write_multiple_) {
         write_cmd = modbus_controller::ModbusCommandItem::create_write_single_command(this->parent_, write_address,
                                                                                        payload[0]);
       } else {

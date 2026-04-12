@@ -976,7 +976,7 @@ number:
   - platform: modbus_controller
     modbus_controller_id: ivem
     name: "${friendly_name} Battery Max Charge Current"
-    address: 8495
+    address: 8494
     register_count: 3
     value_type: U_WORD
     mode: box
