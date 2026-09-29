@@ -6,10 +6,10 @@ import esphome.config_validation as cv
 from esphome.cpp_generator import RawStatement
 from esphome.const import CONF_ID, ENTITY_CATEGORY_CONFIG
 
+from esphome.components.modbus.helpers import SENSOR_VALUE_TYPE
 from esphome.components.modbus_controller import (
     ModbusController,
-    SENSOR_VALUE_TYPE,
-    TYPE_REGISTER_MAP,
+    RANGE_REUSE,
     SensorItem,
 )
 from esphome.components.modbus_controller.const import CONF_MODBUS_CONTROLLER_ID
@@ -114,17 +114,11 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def _register_select(parent: cg.MockObj, spec: SelectSpec, config: dict) -> None:
-    reg_count = spec.register_count
-    if reg_count is None:
-        reg_count = TYPE_REGISTER_MAP[spec.value_type]
-
     var = cg.new_Pvariable(
         config[CONF_ID],
         SENSOR_VALUE_TYPE[spec.value_type],
         spec.address,
-        reg_count,
-        0,
-        False,
+        RANGE_REUSE["auto"],
         list(spec.options_map.values()),
     )
     await cg.register_component(var, config)

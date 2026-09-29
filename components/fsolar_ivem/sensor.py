@@ -17,10 +17,13 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
 )
 
+from esphome.components.modbus.helpers import (
+    MODBUS_REGISTER_TYPE,
+    SENSOR_VALUE_TYPE,
+)
 from esphome.components.modbus_controller import (
     ModbusController,
-    ModbusRegisterType,
-    SENSOR_VALUE_TYPE,
+    RANGE_REUSE,
     SensorItem,
 )
 from esphome.components.modbus_controller.const import CONF_MODBUS_CONTROLLER_ID
@@ -686,14 +689,12 @@ CONFIG_SCHEMA = cv.Schema(
 async def _register_sensor(parent: cg.MockObj, spec: SensorSpec, config: dict) -> None:
     var = cg.new_Pvariable(
         config[CONF_ID],
-        ModbusRegisterType.HOLDING,
+        MODBUS_REGISTER_TYPE["holding"],
         spec.address,
         0,
         0xFFFFFFFF,
         SENSOR_VALUE_TYPE[spec.value_type],
-        spec.register_count,
-        0,
-        False,
+        RANGE_REUSE["auto"],
     )
     await cg.register_component(var, config)
     await sensor.register_sensor(var, config)
@@ -706,7 +707,7 @@ async def _register_sensor(parent: cg.MockObj, spec: SensorSpec, config: dict) -
                 (FsolarIvemSensor.operator("ptr"), "item"),
                 (cg.float_, "x"),
                 (
-                    cg.std_vector.template(cg.uint8).operator("const").operator("ref"),
+                    cg.std_span.template(cg.uint8.operator("const")),
                     "data",
                 ),
             ],

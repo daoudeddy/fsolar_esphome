@@ -1,73 +1,48 @@
 #pragma once
 
-#include <vector>
-
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/modbus_controller/modbus_controller.h"
 #include "esphome/core/component.h"
-#include "esphome/core/log.h"
 
-namespace esphome {
-namespace fsolar_ivem {
+#include <span>
 
-class FsolarIvemBinarySensor : public Component,
-                               public binary_sensor::BinarySensor,
-                               public modbus_controller::SensorItem {
+namespace esphome::fsolar_ivem {
+
+using modbus_controller::RangeReuse;
+using modbus_controller::SensorItem;
+using modbus::helpers::SensorValueType;
+
+class FsolarIvemBinarySensor final : public Component, public binary_sensor::BinarySensor, public SensorItem {
  public:
-  FsolarIvemBinarySensor(modbus_controller::ModbusRegisterType register_type, uint16_t start_address, uint8_t offset,
-                         uint32_t bitmask, uint16_t skip_updates, bool force_new_range) {
+  FsolarIvemBinarySensor(modbus::EntityType register_type, uint16_t start_address, uint8_t offset, uint32_t bitmask,
+                     RangeReuse reuse_previous_range) {
     this->register_type = register_type;
-    this->start_address = start_address;
-    this->offset = offset;
+    this->set_address(start_address);
+    this->set_offset_from_start_address(offset);
     this->bitmask = bitmask;
-    this->sensor_value_type = modbus_controller::SensorValueType::BIT;
-    this->skip_updates = skip_updates;
-    this->force_new_range = force_new_range;
-
-    if (register_type == modbus_controller::ModbusRegisterType::COIL ||
-        register_type == modbus_controller::ModbusRegisterType::DISCRETE_INPUT) {
-      this->register_count = offset + 1;
-    } else {
-      this->register_count = 1;
-    }
+    this->sensor_value_type = SensorValueType::BIT;
+    this->reuse_previous_range = reuse_previous_range;
   }
 
-  void parse_and_publish(const std::vector<uint8_t> &data) override {
-    bool value = false;
-
-    switch (this->register_type) {
-      case modbus_controller::ModbusRegisterType::DISCRETE_INPUT:
-      case modbus_controller::ModbusRegisterType::COIL:
-        value = modbus_controller::coil_from_vector(this->offset, data);
-        break;
-      default:
-        value = (modbus_controller::get_data<uint16_t>(data, this->offset) & this->bitmask) != 0;
-        break;
+  /// On the bit-addressed tables the bit sits at start_address + offset, so the read must span offset + 1
+  /// bits. Uses the offset as configured: `offset` itself is overwritten with the position in the range.
+  uint16_t entity_count() const override {
+    if (modbus::helpers::is_entity_type_binary(this->register_type)) {
+      return this->offset_from_start_address + 1;
     }
-
-    if (this->transform_func_.has_value()) {
-      auto transformed = (*this->transform_func_)(this, value, data);
-      if (transformed.has_value()) {
-        ESP_LOGV("fsolar_ivem.binary_sensor", "Value overwritten by lambda");
-        value = transformed.value();
-      }
-    }
-
-    this->publish_state(value);
+    return 1;
   }
 
+  void parse_and_publish(std::span<const uint8_t> data) override;
   void set_state(bool state) { this->state = state; }
 
-  void dump_config() override {
-    ESP_LOGCONFIG("fsolar_ivem.binary_sensor", "Fsolar IVEM Binary Sensor '%s'", this->get_name().c_str());
-  }
+  void dump_config() override;
 
-  using transform_func_t = optional<bool> (*)(FsolarIvemBinarySensor *, bool, const std::vector<uint8_t> &);
+  using transform_func_t = optional<bool> (*)(FsolarIvemBinarySensor *, bool, std::span<const uint8_t>);
   void set_template(transform_func_t f) { this->transform_func_ = f; }
 
  protected:
   optional<transform_func_t> transform_func_{nullopt};
 };
 
-}  // namespace fsolar_ivem
-}  // namespace esphome
+}  // namespace esphome::fsolar_ivem

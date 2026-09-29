@@ -7,9 +7,10 @@ from esphome.cpp_generator import RawStatement
 from esphome.core import Lambda
 from esphome.const import ENTITY_CATEGORY_DIAGNOSTIC
 
+from esphome.components.modbus.helpers import MODBUS_REGISTER_TYPE
 from esphome.components.modbus_controller import (
     ModbusController,
-    ModbusRegisterType,
+    RANGE_REUSE,
     SensorItem,
 )
 from esphome.components.modbus_controller.const import CONF_MODBUS_CONTROLLER_ID
@@ -83,14 +84,12 @@ CONFIG_SCHEMA = cv.Schema(
 async def _register_text_sensor(parent: cg.MockObj, spec: TextSensorSpec, config: dict) -> None:
     var = cg.new_Pvariable(
         config["id"],
-        ModbusRegisterType.HOLDING,
+        MODBUS_REGISTER_TYPE["holding"],
         spec.address,
         0,
-        spec.register_count,
         spec.response_size,
         RawEncoding.NONE,
-        0,
-        False,
+        RANGE_REUSE["auto"],
     )
     await cg.register_component(var, config)
     await text_sensor.register_text_sensor(var, config)
@@ -103,7 +102,7 @@ async def _register_text_sensor(parent: cg.MockObj, spec: TextSensorSpec, config
                 (FsolarIvemTextSensor.operator("ptr"), "item"),
                 (cg.std_string, "x"),
                 (
-                    cg.std_vector.template(cg.uint8).operator("const").operator("ref"),
+                    cg.std_span.template(cg.uint8.operator("const")),
                     "data",
                 ),
             ],

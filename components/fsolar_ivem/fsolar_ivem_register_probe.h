@@ -4,7 +4,9 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdint>
+#include <span>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "esphome/components/button/button.h"
@@ -76,14 +78,14 @@ class FsolarIvemRegisterProbe : public Component {
   void set_probe_address(uint16_t value) { this->probe_address_ = value; }
   void set_probe_count(uint16_t value) { this->probe_count_ = std::max<uint16_t>(1, std::min<uint16_t>(20, value)); }
   void set_probe_register_type(size_t index) {
-    this->probe_register_type_ = index == 1 ? modbus_controller::ModbusRegisterType::READ
-                                            : modbus_controller::ModbusRegisterType::HOLDING;
+    this->probe_register_type_ = index == 1 ? modbus::EntityType::INPUT_REGISTER
+                                            : modbus::EntityType::HOLDING;
   }
 
   uint16_t get_probe_address() const { return this->probe_address_; }
   uint16_t get_probe_count() const { return this->probe_count_; }
   const char *register_type_label_() const {
-    return this->probe_register_type_ == modbus_controller::ModbusRegisterType::READ ? "Input" : "Holding";
+    return this->probe_register_type_ == modbus::EntityType::INPUT_REGISTER ? "Input" : "Holding";
   }
 
   void execute_probe() {
@@ -116,18 +118,18 @@ class FsolarIvemRegisterProbe : public Component {
 
     auto command = modbus_controller::ModbusCommandItem::create_read_command(
         this->parent_, register_type, start_address, register_count,
-        [this, start_address, register_count](modbus_controller::ModbusRegisterType register_type, uint16_t,
-                                              const std::vector<uint8_t> &data) {
+        [this, start_address, register_count](modbus::EntityType register_type, uint16_t,
+                                              std::span<const uint8_t> data) {
           this->cancel_timeout("probe-timeout");
           this->probe_pending_ = false;
 
           this->publish_result_(this->format_register_values_(start_address, data));
 
-          const char *type_label = register_type == modbus_controller::ModbusRegisterType::READ ? "Input" : "Holding";
+          const char *type_label = register_type == modbus::EntityType::INPUT_REGISTER ? "Input" : "Holding";
           this->publish_status_(std::string("Read ") + type_label + " @ " + std::to_string(start_address) +
                                 " count " + std::to_string(register_count) + " ok");
         });
-    this->parent_->queue_command(command);
+    this->parent_->queue_command(std::move(command));
   }
 
   void set_probe_address_number(number::Number *number) { this->probe_address_number_ = number; }
@@ -155,7 +157,7 @@ class FsolarIvemRegisterProbe : public Component {
     }
   }
 
-  std::string format_register_values_(uint16_t start_address, const std::vector<uint8_t> &data) const {
+  std::string format_register_values_(uint16_t start_address, std::span<const uint8_t> data) const {
     if (data.empty()) {
       return "<empty response>";
     }
@@ -191,7 +193,7 @@ class FsolarIvemRegisterProbe : public Component {
   text_sensor::TextSensor *probe_result_text_sensor_{nullptr};
   uint16_t probe_address_{4400};
   uint16_t probe_count_{1};
-  modbus_controller::ModbusRegisterType probe_register_type_{modbus_controller::ModbusRegisterType::HOLDING};
+  modbus::EntityType probe_register_type_{modbus::EntityType::HOLDING};
   bool probe_pending_{false};
 };
 

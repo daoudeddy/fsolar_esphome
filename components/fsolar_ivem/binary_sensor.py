@@ -6,9 +6,10 @@ import esphome.config_validation as cv
 from esphome.cpp_generator import RawStatement
 from esphome.const import DEVICE_CLASS_CONNECTIVITY, DEVICE_CLASS_PROBLEM
 
+from esphome.components.modbus.helpers import MODBUS_REGISTER_TYPE
 from esphome.components.modbus_controller import (
     ModbusController,
-    ModbusRegisterType,
+    RANGE_REUSE,
     SensorItem,
 )
 from esphome.components.modbus_controller.const import CONF_MODBUS_CONTROLLER_ID
@@ -81,12 +82,11 @@ CONFIG_SCHEMA = cv.Schema(
 async def _register_binary_sensor(parent: cg.MockObj, spec: BinarySensorSpec, config: dict) -> None:
     var = cg.new_Pvariable(
         config["id"],
-        ModbusRegisterType.HOLDING,
+        MODBUS_REGISTER_TYPE["holding"],
         spec.address,
         0,
         spec.bitmask,
-        0,
-        False,
+        RANGE_REUSE["auto"],
     )
     await cg.register_component(var, config)
     await binary_sensor.register_binary_sensor(var, config)

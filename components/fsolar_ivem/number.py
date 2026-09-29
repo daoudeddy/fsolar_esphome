@@ -12,10 +12,14 @@ from esphome.const import (
     ENTITY_CATEGORY_CONFIG,
 )
 
+from esphome.components.modbus.helpers import (
+    MODBUS_REGISTER_TYPE,
+    SENSOR_VALUE_TYPE,
+    RegisterValues,
+)
 from esphome.components.modbus_controller import (
     ModbusController,
-    ModbusRegisterType,
-    SENSOR_VALUE_TYPE,
+    RANGE_REUSE,
     SensorItem,
 )
 from esphome.components.modbus_controller.const import CONF_MODBUS_CONTROLLER_ID
@@ -203,14 +207,12 @@ CONFIG_SCHEMA = cv.Schema(
 async def _register_number(parent: cg.MockObj, spec: NumberSpec, config: dict) -> None:
     var = cg.new_Pvariable(
         config[CONF_ID],
-        ModbusRegisterType.HOLDING,
+        MODBUS_REGISTER_TYPE["holding"],
         spec.address,
         0,
         0xFFFFFFFF,
         SENSOR_VALUE_TYPE[spec.value_type],
-        spec.register_count,
-        0,
-        False,
+        RANGE_REUSE["auto"],
     )
     await cg.register_component(var, config)
     await number.register_number(
@@ -230,7 +232,7 @@ async def _register_number(parent: cg.MockObj, spec: NumberSpec, config: dict) -
                 (FsolarIvemNumber.operator("ptr"), "item"),
                 (cg.float_, "x"),
                 (
-                    cg.std_vector.template(cg.uint8).operator("const").operator("ref"),
+                    cg.std_span.template(cg.uint8.operator("const")),
                     "data",
                 ),
             ],
@@ -244,7 +246,7 @@ async def _register_number(parent: cg.MockObj, spec: NumberSpec, config: dict) -
             [
                 (FsolarIvemNumber.operator("ptr"), "item"),
                 (cg.float_, "x"),
-                (cg.std_vector.template(cg.uint16).operator("ref"), "payload"),
+                (RegisterValues.operator("ref"), "payload"),
             ],
             return_type=cg.optional.template(float),
         )

@@ -13,7 +13,7 @@ substitutions:
   friendly_name: "IVEM6048-II"
   modbus_address: "1"
   update_interval: 10s
-  command_throttle: 100ms
+  turnaround_time: 100ms
 
 esphome:
   name: ${name}
@@ -53,6 +53,7 @@ uart:
 modbus:
   id: modbus_bus
   send_wait_time: 200ms
+  turnaround_time: ${turnaround_time}
   # Uncomment if your RS485 transceiver needs explicit direction control.
   # flow_control_pin: GPIO4
 
@@ -62,7 +63,6 @@ modbus_controller:
     modbus_id: modbus_bus
     setup_priority: -10
     update_interval: ${update_interval}
-    command_throttle: ${command_throttle}
     max_cmd_retries: 0
     offline_skip_updates: 0
 
