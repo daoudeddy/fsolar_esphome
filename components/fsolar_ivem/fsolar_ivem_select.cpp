@@ -1,4 +1,7 @@
 #include "fsolar_ivem_select.h"
+
+#ifdef USE_SELECT
+
 #include "esphome/core/log.h"
 
 namespace esphome::fsolar_ivem {
@@ -114,3 +117,5 @@ void FsolarIvemSelect::control(size_t index) {
 }
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_SELECT

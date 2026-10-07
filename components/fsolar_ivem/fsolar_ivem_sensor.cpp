@@ -1,5 +1,7 @@
-
 #include "fsolar_ivem_sensor.h"
+
+#ifdef USE_SENSOR
+
 #include "esphome/core/log.h"
 
 namespace esphome::fsolar_ivem {
@@ -32,3 +34,5 @@ void FsolarIvemSensor::parse_and_publish(std::span<const uint8_t> data) {
 }
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_SENSOR

@@ -1,5 +1,9 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
+#ifdef USE_FSOLAR_IVEM_REGISTER_PROBE
+
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -232,3 +236,5 @@ inline void FsolarIvemProbeReadButton::press_action() {
 
 }  // namespace fsolar_ivem
 }  // namespace esphome
+
+#endif  // USE_FSOLAR_IVEM_REGISTER_PROBE

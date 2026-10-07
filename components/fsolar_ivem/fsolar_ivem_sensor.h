@@ -1,5 +1,9 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
+#ifdef USE_SENSOR
+
 #include "esphome/components/modbus_controller/modbus_controller.h"
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/core/component.h"
@@ -36,3 +40,5 @@ class FsolarIvemSensor final : public Component, public sensor::Sensor, public S
 };
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_SENSOR

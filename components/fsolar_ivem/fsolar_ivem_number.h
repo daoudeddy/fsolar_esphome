@@ -1,5 +1,9 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
+#ifdef USE_NUMBER
+
 #include "esphome/components/number/number.h"
 #include "esphome/components/modbus_controller/modbus_controller.h"
 #include "esphome/core/component.h"
@@ -50,3 +54,5 @@ class FsolarIvemNumber final : public number::Number, public Component, public S
 };
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_NUMBER

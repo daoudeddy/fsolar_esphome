@@ -1,5 +1,9 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
+#ifdef USE_TEXT_SENSOR
+
 #include "esphome/components/modbus_controller/modbus_controller.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/component.h"
@@ -41,3 +45,5 @@ class FsolarIvemTextSensor final : public Component, public text_sensor::TextSen
 };
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_TEXT_SENSOR

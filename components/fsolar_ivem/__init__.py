@@ -92,6 +92,7 @@ CONFIG_SCHEMA = cv.Schema(
 
 
 async def to_code(config: dict) -> None:
+    cg.add_define("USE_FSOLAR_IVEM_REGISTER_PROBE")
     cg.add_global(RawStatement(f'#include "{LOCAL_REGISTER_PROBE_HEADER}"'))
 
     var = cg.new_Pvariable(config[CONF_ID])

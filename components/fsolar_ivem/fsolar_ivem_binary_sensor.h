@@ -1,5 +1,9 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
+#ifdef USE_BINARY_SENSOR
+
 #include "esphome/components/binary_sensor/binary_sensor.h"
 #include "esphome/components/modbus_controller/modbus_controller.h"
 #include "esphome/core/component.h"
@@ -46,3 +50,5 @@ class FsolarIvemBinarySensor final : public Component, public binary_sensor::Bin
 };
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_BINARY_SENSOR

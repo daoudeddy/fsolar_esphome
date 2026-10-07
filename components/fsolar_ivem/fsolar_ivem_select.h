@@ -1,5 +1,9 @@
 #pragma once
 
+#include "esphome/core/defines.h"
+
+#ifdef USE_SELECT
+
 #include <utility>
 #include <vector>
 
@@ -52,3 +56,5 @@ class FsolarIvemSelect final : public Component, public select::Select, public S
 };
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_SELECT

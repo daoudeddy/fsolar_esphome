@@ -1,4 +1,7 @@
 #include "fsolar_ivem_binary_sensor.h"
+
+#ifdef USE_BINARY_SENSOR
+
 #include "esphome/core/log.h"
 
 namespace esphome::fsolar_ivem {
@@ -39,3 +42,5 @@ void FsolarIvemBinarySensor::parse_and_publish(std::span<const uint8_t> data) {
 }
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_BINARY_SENSOR

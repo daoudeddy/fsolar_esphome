@@ -1,4 +1,7 @@
 #include "fsolar_ivem_number.h"
+
+#ifdef USE_NUMBER
+
 #include "esphome/core/helpers.h"
 #include "esphome/core/log.h"
 
@@ -107,3 +110,5 @@ void FsolarIvemNumber::control(float value) {
 void FsolarIvemNumber::dump_config() { LOG_NUMBER(TAG, "Modbus Number", this); }
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_NUMBER

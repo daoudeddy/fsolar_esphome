@@ -1,5 +1,7 @@
-
 #include "fsolar_ivem_text_sensor.h"
+
+#ifdef USE_TEXT_SENSOR
+
 #include "esphome/core/log.h"
 
 namespace esphome::fsolar_ivem {
@@ -61,3 +63,5 @@ void FsolarIvemTextSensor::parse_and_publish(std::span<const uint8_t> data) {
 }
 
 }  // namespace esphome::fsolar_ivem
+
+#endif  // USE_TEXT_SENSOR
